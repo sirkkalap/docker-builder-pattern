@@ -5,31 +5,31 @@ if [[ $(docker info) != *"Kernel Version:"* ]]; then
     exit 1
 fi
 
-OPTS="-it --sig-proxy=true"
-PROJECT=ui-select
+PROJECT=docker-builder-pattern
+
 read -r -d '' SCRIPT <<- End
-    git clone https://github.com/angular-ui/ui-select.git $PROJECT
-    cd $PROJECT
+    Xvfb :1 -ac &
+    export DISPLAY=:1
+    [[ -d $PROJECT/ui-select ]] || git clone https://github.com/angular-ui/ui-select.git $PROJECT/ui-select
+    cd $PROJECT/ui-select
     npm install -g bower gulp
     npm install && bower install
     gulp
 End
 
-# https://github.com/sirkkalap/jenkins-swarm-slave-w-nodejs-docker
-IMG=sirkkalap/jenkins-swarm-slave-w-nodejs
+# https://github.com/sirkkalap/jenkins-swarm-slave-nlm-docker
+IMG=sirkkalap/jenkins-swarm-slave-nlm
 MOUNT="-v $(pwd):/home/jenkins-slave/$PROJECT"
 NAME="--name $PROJECT"
+OPTS="-it --sig-proxy=true"
 
 VOLFROM=$(docker ps -a | grep $PROJECT-volume | cut -d ' ' -f1)
 if [ ! -z $VOLFROM ]; then
     VOLFROM="--volumes-from $VOLFROM"
 else
     echo "To make persistent volume for build (cache) use:"
-    echo "docker run --name $PROJECT-volume -v /home/jenkins-slave ubuntu true"
+    echo "docker run --name $PROJECT-volume $MOUNT -v /home/jenkins-slave $IMG true"
 fi
 
+docker rm -f $PROJECT 2>/dev/null # Clean up old builds
 docker run $OPTS $NAME $VOLFROM $MOUNT $IMG /bin/bash -c "$SCRIPT"
-
-echo "Remember to remove the build container $PROJECT before next build."
-echo "For example: docker rm -f $PROJECT"
-echo "You may also take a look inside with: docker exec -it $PROJECT bash"
