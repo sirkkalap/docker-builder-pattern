@@ -10,8 +10,11 @@ PROJECT=docker-builder-pattern
 read -r -d '' SCRIPT <<- End
     Xvfb :1 -ac &
     export DISPLAY=:1
+
     [[ -d $PROJECT/ui-select ]] || git clone https://github.com/angular-ui/ui-select.git $PROJECT/ui-select
+
     cd $PROJECT/ui-select
+
     npm install -g bower gulp
     npm install && bower install
     gulp
