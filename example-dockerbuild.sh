@@ -1,23 +1,29 @@
 #!/bin/bash
 
+echo "Note: Since dind has it's own images and they are stored in a volume, running this will eat disk space."
+echo "See: docker images"
+sleep 3
+
 if [[ $(docker info) != *"Kernel Version:"* ]]; then
     echo "Unable to connect with Docker."
     exit 1
 fi
 
 PROJECT=docker-builder-pattern
+SUBPROJECT=java-maven
 
 read -r -d '' SCRIPT <<- End
     PORT=2376 /usr/local/bin/wrapdocker &
     export DOCKER_HOST=tcp://127.0.0.1:2376
 
-    if [ ! -d /$PROJECT/jenkins-swarm-slave-nlm ]; then
-      git clone https://github.com/sirkkalap/jenkins-swarm-slave-nlm-docker.git /$PROJECT/jenkins-swarm-slave-nlm
+    if [ ! -d /$PROJECT/$SUBPROJECT ]; then
+        git clone https://github.com/sirkkalap/$SUBPROJECT-docker.git /$PROJECT/$SUBPROJECT-docker
     fi
 
-    cd /$PROJECT/jenkins-swarm-slave-nlm
+    cd /$PROJECT/$SUBPROJECT-docker
+    git checkout -b java7
 
-    docker build -t sirkkalap/jenkins-swarm-slave-nlm .
+    docker build -t sirkkalap/$SUBPROJECT .
 End
 
 IMG=jpetazzo/dind
