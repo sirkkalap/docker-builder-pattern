@@ -14,15 +14,15 @@ Builder must have a working Docker installation. Bash is also needed.
 # Why standardized builds?
 - Builds can be repeated.
 - Dependencies become explicit and defined.
-- Work can be distributed
-- Failures can be reproduced
-- Automated builds are easier to maintain
-- Bug reports can contain a repeatable build script
+- Work can be distributed.
+- Failures can be reproduced.
+- Automated builds are easier to maintain.
+- Bug reports can contain a repeatable build script.
 
 # Why not?
 - Takes slightly more time.
 - Uses Docker, which requires understanding.
-- Docker is not for everyone. No .Net yet.
+- Docker is not for everyone. Not avalable for .Net yet.
 - Debugging is slightly more complicated.
 - Even with Docker, there still are variables.
 
