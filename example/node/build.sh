@@ -5,38 +5,32 @@ if [[ $(docker info) != *"Kernel Version:"* ]]; then
     exit 1
 fi
 
-PROJECT=docker-builder-pattern
-WORKDIR=ui-select
+PROJECT=angular-ui/ui-select
+CONTAINER_NAME=ui-select-build
 
 read -r -d '' SCRIPT <<- End
     cd $PROJECT
     Xvfb :1 -ac &
     export DISPLAY=:1
 
-    if [[ ! -d $WORKDIR ]]; then
-         git clone https://github.com/angular-ui/ui-select.git $WORKDIR
-    fi
-
-    cd $WORKDIR
-
-    npm install -g bower gulp
-    npm install --config.interactive=false && bower install --config.interactive=false
+    sudo npm install -g bower gulp
+    npm install && bower install
     gulp
 End
 
 # https://github.com/sirkkalap/jenkins-swarm-slave-nlm-docker
 IMG=sirkkalap/jenkins-swarm-slave-nlm
 MOUNT="-v $(pwd):/home/jenkins-slave/$PROJECT"
-NAME="--name $PROJECT"
+NAME="--name $CONTAINER_NAME"
 OPTS="-it --sig-proxy=true"
 
-VOLFROM=$(docker ps -a | grep -o $PROJECT-volume)
+VOLFROM=$(docker ps -a | grep -o $CONTAINER_NAME-volume)
 if [ ! -z $VOLFROM ]; then
     VOLFROM="--volumes-from $VOLFROM"
 else
     echo "To make persistent volume for build (cache) use:"
-    echo "docker run --name $PROJECT-volume $MOUNT -v /home/jenkins-slave $IMG true"
+    echo "docker run --name $CONTAINER_NAME-volume $MOUNT -v /home/jenkins-slave $IMG true"
 fi
 
-docker rm -f $PROJECT 2>/dev/null # Clean up old builds
+docker rm -f $CONTAINER_NAME 2>/dev/null # Clean up old builds
 docker run $OPTS $NAME $VOLFROM $MOUNT $IMG /bin/bash -c "$SCRIPT"

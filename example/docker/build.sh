@@ -9,21 +9,19 @@ if [[ $(docker info) != *"Kernel Version:"* ]]; then
     exit 1
 fi
 
-PROJECT=docker-builder-pattern
-SUBPROJECT=java-maven
+PROJECT=java-maven-docker
 
 read -r -d '' SCRIPT <<- End
     PORT=2376 /usr/local/bin/wrapdocker &
     export DOCKER_HOST=tcp://127.0.0.1:2376
 
-    if [ ! -d /$PROJECT/$SUBPROJECT ]; then
-        git clone https://github.com/sirkkalap/$SUBPROJECT-docker.git /$PROJECT/$SUBPROJECT-docker
+    if [ ! -d $PROJECT ]; then
+        git clone https://github.com/sirkkalap/$PROJECT-docker.git $PROJECT
     fi
 
-    cd /$PROJECT/$SUBPROJECT-docker
-    git checkout -b java7
+    cd $PROJECT
 
-    docker build -t sirkkalap/$SUBPROJECT .
+    docker build -t sirkkalap/$PROJECT .
 End
 
 IMG=jpetazzo/dind
